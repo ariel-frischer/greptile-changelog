@@ -15,7 +15,7 @@ const ChangelogPage: NextPage = () => {
         },
         body: JSON.stringify({ startDate, endDate, gitRepo }),
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         alert(data.message);
@@ -31,6 +31,17 @@ const ChangelogPage: NextPage = () => {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Generate Changelog</h1>
+        <div>
+          <label htmlFor="gitRepo" className="block mb-1">Git Repository:</label>
+          <input
+            type="text"
+            id="gitRepo"
+            value={gitRepo}
+            onChange={(e) => setGitRepo(e.target.value)}
+            className="w-full p-2 border rounded"
+            placeholder="https://github.com/username/repo.git"
+          />
+        </div>
       <div className="space-y-4">
         <div>
           <label htmlFor="startDate" className="block mb-1">Start Date:</label>
@@ -50,17 +61,6 @@ const ChangelogPage: NextPage = () => {
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
             className="w-full p-2 border rounded"
-          />
-        </div>
-        <div>
-          <label htmlFor="gitRepo" className="block mb-1">Git Repository:</label>
-          <input
-            type="text"
-            id="gitRepo"
-            value={gitRepo}
-            onChange={(e) => setGitRepo(e.target.value)}
-            className="w-full p-2 border rounded"
-            placeholder="https://github.com/username/repo.git"
           />
         </div>
         <button
