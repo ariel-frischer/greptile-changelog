@@ -8,9 +8,9 @@ const ChangelogPage: NextPage = () => {
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      setGitRepo('octocat/Hello-World');
-      setStartDate('2023-09-22T18:00');
-      setEndDate('2023-09-22T23:10');
+      setGitRepo('ariel-frischer/bulk-ticket-generator');
+      setStartDate('2024-09-22T18:00');
+      setEndDate('2024-09-22T23:10');
     }
   }, []);
 
@@ -25,10 +25,10 @@ const ChangelogPage: NextPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          startDate: new Date(startDate).toISOString(), 
-          endDate: new Date(endDate).toISOString(), 
-          gitRepo 
+        body: JSON.stringify({
+          startDate: new Date(startDate).toISOString(),
+          endDate: new Date(endDate).toISOString(),
+          gitRepo
         }),
       });
 
