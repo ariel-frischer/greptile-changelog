@@ -15,7 +15,7 @@ const ChangelogPage: NextPage = () => {
     }
   }, []);
 
-  const [changelog, setChangelog] = useState<string>('');
+  const [changelog, setChangelog] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGenerateChangelog = async () => {

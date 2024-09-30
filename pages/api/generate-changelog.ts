@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import GreptileAPI from '../../utils/GreptileAPI'
 
 type Commit = {
   sha: string;
@@ -12,7 +13,7 @@ type CommitWithDiff = Commit & {
 }
 
 type Data = {
-  changelog: CommitWithDiff[];
+  changelog: string;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
@@ -20,13 +21,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const { startDate, endDate, gitRepo } = req.body
 
     if (!startDate || !endDate || !gitRepo) {
-      return res.status(400).json({ changelog: [] })
+      return res.status(400).json({ changelog: '' })
     }
 
     const githubToken = process.env.GITHUB_TOKEN
+    const greptileApiKey = process.env.GREPTILE_API_KEY
 
-    if (!githubToken) {
-      return res.status(500).json({ changelog: [] })
+    if (!githubToken || !greptileApiKey) {
+      return res.status(500).json({ changelog: '' })
     }
 
     try {
@@ -72,10 +74,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         })
       )
 
-      res.status(200).json({ changelog: commitsWithDiffs })
+      // Call Greptile API
+      const greptileAPI = new GreptileAPI(greptileApiKey, githubToken)
+      const repositories = [{
+        remote: 'github.com',
+        repository: gitRepo,
+        branch: 'main'  // Assuming main branch, adjust if needed
+      }]
+
+      const messages = [
+        {
+          role: 'system',
+          content: 'You are a helpful assistant that generates changelogs. Focus on non-technical changes and use the correct markdown changelog format with datetimes.'
+        },
+        {
+          role: 'user',
+          content: `Generate a changelog for the following commits:\n\n${JSON.stringify(commitsWithDiffs, null, 2)}`
+        }
+      ]
+
+      const greptileResponse = await greptileAPI.query(messages, repositories)
+
+      res.status(200).json({ changelog: greptileResponse.choices[0].message.content })
     } catch (error) {
       console.error('Error generating changelog:', error)
-      res.status(500).json({ changelog: [] })
+      res.status(500).json({ changelog: '' })
     }
   } else {
     res.setHeader('Allow', ['POST'])
