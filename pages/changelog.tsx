@@ -1,10 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NextPage } from 'next';
 
 const ChangelogPage: NextPage = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [gitRepo, setGitRepo] = useState('');
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      setGitRepo('https://github.com/ariel-frischer/bulk-ticket-generator');
+      setStartDate('2023-09-22T18:00');
+      setEndDate('2023-09-22T23:10');
+    }
+  }, []);
 
   const handleGenerateChangelog = async () => {
     try {
