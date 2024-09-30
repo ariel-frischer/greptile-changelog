@@ -14,7 +14,7 @@ const ChangelogPage: NextPage = () => {
     }
   }, []);
 
-  const [changelog, setChangelog] = useState('');
+  const [changelog, setChangelog] = useState<Array<{ sha: string; commit: { message: string }; diff: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGenerateChangelog = async () => {
@@ -89,10 +89,16 @@ const ChangelogPage: NextPage = () => {
           {isLoading ? 'Generating...' : 'Generate Changelog'}
         </button>
       </div>
-      {changelog && (
+      {changelog.length > 0 && (
         <div className="mt-8">
           <h2 className="text-xl font-bold mb-2">Changelog:</h2>
-          <pre className="bg-gray-100 p-4 rounded whitespace-pre-wrap">{changelog}</pre>
+          {changelog.map((commit, index) => (
+            <div key={commit.sha} className="mb-4 p-4 bg-gray-100 rounded">
+              <h3 className="font-bold">{commit.commit.message}</h3>
+              <p className="text-sm text-gray-600 mb-2">Commit: {commit.sha.substring(0, 7)}</p>
+              <pre className="whitespace-pre-wrap text-sm overflow-x-auto">{commit.diff}</pre>
+            </div>
+          ))}
         </div>
       )}
     </div>

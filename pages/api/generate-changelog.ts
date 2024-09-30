@@ -1,7 +1,18 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
+type Commit = {
+  sha: string;
+  commit: {
+    message: string;
+  };
+}
+
+type CommitWithDiff = Commit & {
+  diff: string;
+}
+
 type Data = {
-  changelog: string
+  changelog: CommitWithDiff[];
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
@@ -9,18 +20,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const { startDate, endDate, gitRepo } = req.body
 
     if (!startDate || !endDate || !gitRepo) {
-      return res.status(400).json({ changelog: 'Missing required parameters' })
+      return res.status(400).json({ changelog: [] })
     }
 
     const githubToken = process.env.GITHUB_TOKEN
 
     if (!githubToken) {
-      return res.status(500).json({ changelog: 'Server configuration error' })
+      return res.status(500).json({ changelog: [] })
     }
 
     try {
       const [owner, repo] = gitRepo.split('/').slice(-2)
-      console.warn(': generate-changelog.ts:22: owner=', owner)
 
       const apiUrl = `https://api.github.com/repos/${owner}/${repo}/commits?since=${startDate}&until=${endDate}`
 
@@ -36,19 +46,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         throw new Error(`GitHub API responded with status ${response.status}`)
       }
 
-      const commits = await response.json()
-      console.warn(': generate-changelog.ts:38: commits=', commits)
+      const commits: Commit[] = await response.json()
 
-      const changelog = commits
-        .map((commit: any) => {
-          return `- ${commit.commit.message} (${commit.sha.substring(0, 7)})`
+      const commitsWithDiffs: CommitWithDiff[] = await Promise.all(
+        commits.map(async (commit) => {
+          const diffUrl = `https://api.github.com/repos/${owner}/${repo}/commits/${commit.sha}`
+          const diffResponse = await fetch(diffUrl, {
+            headers: {
+              Authorization: `token ${githubToken}`,
+              Accept: 'application/vnd.github.v3.diff',
+              'X-GitHub-Api-Version': '2022-11-28',
+            },
+          })
+
+          if (!diffResponse.ok) {
+            throw new Error(`GitHub API responded with status ${diffResponse.status} for diff`)
+          }
+
+          const diff = await diffResponse.text()
+
+          return {
+            ...commit,
+            diff,
+          }
         })
-        .join('\n')
+      )
 
-      res.status(200).json({ changelog })
+      res.status(200).json({ changelog: commitsWithDiffs })
     } catch (error) {
       console.error('Error generating changelog:', error)
-      res.status(500).json({ changelog: 'Failed to generate changelog' })
+      res.status(500).json({ changelog: [] })
     }
   } else {
     res.setHeader('Allow', ['POST'])
