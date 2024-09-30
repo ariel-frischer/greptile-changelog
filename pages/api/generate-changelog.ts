@@ -83,21 +83,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         },
       ]
 
-      const messages = [
-        {
-          role: 'system',
-          content:
-            'You are a helpful assistant that generates changelogs. Focus on non-technical changes and use the correct markdown changelog format with datetimes.',
-        },
-        {
-          role: 'user',
-          content: `Generate a changelog for the following commits:\n\n${JSON.stringify(commitsWithDiffs, null, 2)}`,
-        },
-      ]
+      const systemMessage = {
+        role: 'system',
+        content: 'You are a helpful assistant that generates changelogs. Focus on non-technical changes and use the correct markdown changelog format with datetimes.',
+      }
 
-      const greptileResponse = await greptileAPI.query(messages, repositories)
+      const changelogEntries = await Promise.all(
+        commitsWithDiffs.map(async (commit) => {
+          const messages = [
+            systemMessage,
+            {
+              role: 'user',
+              content: `Generate a changelog entry for the following commit:\n\n${JSON.stringify(commit, null, 2)}`,
+            },
+          ]
 
-      res.status(200).json({ changelog: greptileResponse.choices[0].message.content })
+          const greptileResponse = await greptileAPI.query(messages, repositories)
+          return greptileResponse.choices[0].message.content.trim()
+        })
+      )
+
+      const fullChangelog = changelogEntries.join('\n\n')
+
+      res.status(200).json({ changelog: fullChangelog })
     } catch (error) {
       console.error('Error generating changelog:', error)
       res.status(500).json({ changelog: '' })
