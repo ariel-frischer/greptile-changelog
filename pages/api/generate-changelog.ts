@@ -16,6 +16,50 @@ type Data = {
   changelog: string
 }
 
+async function batchQueryGreptile(greptileAPI: GreptileAPI, commitsWithDiffs: CommitWithDiff[], repositories: any[]) {
+  const systemMessage = {
+    role: 'system',
+    content:
+      'You are a helpful assistant that generates changelogs. Focus on non-technical changes and use the correct markdown changelog format with datetimes. Keep responses brief through summarization and discarding insignificant details.',
+  }
+
+  const changelogEntries = await Promise.all(
+    commitsWithDiffs.map(async (commit) => {
+      const messages = [
+        systemMessage,
+        {
+          role: 'user',
+          content: `Generate a changelog entry for the following commit:\n\n${JSON.stringify(commit, null, 2)}`,
+        },
+      ]
+
+      const greptileResponse = await greptileAPI.query(messages, repositories)
+      return greptileResponse.message
+    })
+  )
+
+  return changelogEntries.join('\n\n')
+}
+
+async function queryGreptile(greptileAPI: GreptileAPI, commitsWithDiffs: CommitWithDiff[], repositories: any[]) {
+  const systemMessage = {
+    role: 'system',
+    content:
+      'You are a helpful assistant that generates changelogs. Focus on non-technical changes and use the correct markdown changelog format with datetimes. Keep responses brief through summarization and discarding insignificant details.',
+  }
+
+  const messages = [
+    systemMessage,
+    {
+      role: 'user',
+      content: `Generate a changelog for the following commits:\n\n${JSON.stringify(commitsWithDiffs, null, 2)}`,
+    },
+  ]
+
+  const greptileResponse = await greptileAPI.query(messages, repositories)
+  return greptileResponse.message
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method === 'POST') {
     const { startDate, endDate, gitRepo } = req.body
@@ -85,28 +129,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         },
       ]
 
-      const systemMessage = {
-        role: 'system',
-        content:
-          'You are a helpful assistant that generates changelogs. Focus on non-technical changes and use the correct markdown changelog format with datetimes. Keep responses brief through summarization and discarding insignificant details.',
-      }
-
-      const changelogEntries = await Promise.all(
-        commitsWithDiffs.map(async (commit) => {
-          const messages = [
-            systemMessage,
-            {
-              role: 'user',
-              content: `Generate a changelog entry for the following commit:\n\n${JSON.stringify(commit, null, 2)}`,
-            },
-          ]
-
-          const greptileResponse = await greptileAPI.query(messages, repositories)
-          return greptileResponse.message
-        })
-      )
-
-      const fullChangelog = changelogEntries.join('\n\n')
+      // Use queryGreptile by default
+      const fullChangelog = await queryGreptile(greptileAPI, commitsWithDiffs, repositories)
+      // Uncomment the line below to use batchQueryGreptile instead
+      // const fullChangelog = await batchQueryGreptile(greptileAPI, commitsWithDiffs, repositories)
 
       res.status(200).json({ changelog: fullChangelog })
     } catch (error) {
