@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
       const commits: Commit[] = await response.json()
 
-      const commitsWithDiffs: CommitWithDiff[] = await Promise.all(
+      let commitsWithDiffs: CommitWithDiff[] = await Promise.all(
         commits.map(async (commit) => {
           const diffUrl = `https://api.github.com/repos/${owner}/${repo}/commits/${commit.sha}`
           const diffResponse = await fetch(diffUrl, {
@@ -73,6 +73,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           }
         })
       )
+      // Get first 3 commits with diffs
+      // commitsWithDiffs = commitsWithDiffs.slice(0, 3)
 
       const greptileAPI = new GreptileAPI(greptileApiKey, githubToken)
       const repositories = [
@@ -85,7 +87,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
       const systemMessage = {
         role: 'system',
-        content: 'You are a helpful assistant that generates changelogs. Focus on non-technical changes and use the correct markdown changelog format with datetimes.',
+        content:
+          'You are a helpful assistant that generates changelogs. Focus on non-technical changes and use the correct markdown changelog format with datetimes. Keep responses brief through summarization and discarding insignificant details.',
       }
 
       const changelogEntries = await Promise.all(
@@ -99,7 +102,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           ]
 
           const greptileResponse = await greptileAPI.query(messages, repositories)
-          return greptileResponse.choices[0].message.content.trim()
+          return greptileResponse.message
         })
       )
 
