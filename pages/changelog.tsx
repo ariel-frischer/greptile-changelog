@@ -96,7 +96,7 @@ const ChangelogPage: NextPage = () => {
             value={changelog}
             onChange={(e) => setChangelog(e.target.value)}
             className="w-full h-64 p-2 border rounded"
-            readOnly
+            readOnly={false}
           />
         </div>
       )}

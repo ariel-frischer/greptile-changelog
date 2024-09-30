@@ -1,20 +1,10 @@
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/26466516/107675802-36216b80-6c77-11eb-8db1-4d3407dc53d9.png" alt="Next.js and TypeScript">
-</p>
+Quick NextJS Starter Repo - Generates a changelog given two Dates
 
-<p align="center">
-  <img src="https://img.shields.io/static/v1?label=PRs&message=welcome&style=for-the-badge&color=24B36B&labelColor=000000" alt="PRs welcome!" />
-
-  <img alt="License" src="https://img.shields.io/github/license/chhpt/typescript-nextjs-starter?style=for-the-badge&color=24B36B&labelColor=000000">
-
-  <a href="https://twitter.com/intent/follow?screen_name=cwuyiqing">
-    <img src="https://img.shields.io/twitter/follow/cwuyiqing?style=for-the-badge&color=24B36B&labelColor=000000" alt="Follow @chhpt" />
-  </a>
-</p>
-
-<br>
-
-A Next.js starter that includes all you need to build amazing projects 🔥. Fork and customize from [jpedroschmitz](https://github.com/jpedroschmitz/typescript-nextjs-starter)
+## How it works
+1. First we get all commits within the given range using github API request.
+2. Then we make requests in parallel to github to get the diff of each request.
+3. We then send over the commit messages + diffs + LLM prompt to Greptile Query with instruction to create a changelog.
+4. Show the changelog in an editable text area on the frontend.
 
 - 🚀 **Next.js 13 & React 18**
 - ⚙️ **Tailwind CSS 3** - A utility-first CSS framework
@@ -28,38 +18,33 @@ A Next.js starter that includes all you need to build amazing projects 🔥. For
 
 ## 🚀 Getting started
 
-The best way to start with this template is using `create-next-app`.
-
-```
-npx create-next-app ts-next -e https://github.com/chhpt/nextjs-starter
-```
-
-or
-
-```
-pnpm create next-app ts-next -e https://github.com/chhpt/nextjs-starter
-```
-
 If you prefer you can clone this repository and run the following commands inside the project folder:
 
 1. `pnpm install` or `npm install`;
 2. `pnpm dev`;
 
-To view the project open `http://localhost:3000`.
+You will need to set the following ENV variables in your .env file:
 
-## 🤝 Contributing
+```
+GREPTILE_API_KEY=
+GITHUB_TOKEN=
+```
 
-1. Fork this repository;
-2. Create your branch: `git checkout -b my-new-feature`;
-3. Commit your changes: `git commit -m 'Add some feature'`;
-4. Push to the branch: `git push origin my-new-feature`.
+To view the project open `http://localhost:3000/changelog`.
 
-**After your pull request is merged**, you can safely delete your branch.
+## Notice
+* We default to using `main` branch for now, there is no way frontend component to change that.
+* This was done as quickly as possble and so refactoring for code readability would be a nice to have.
+* Try to minimize the number of commits within the start/end date because
+  too many commits may take up too much time AND may overflow the LLM prompt.
 
-## 📝 License
+## Improvements
+* Caching on Frontend Requests
+* Minimize context send to Greptile through getting FINAL_DIFF of changed files instead of every diff.
+* Can perhaps use black/whitelisting filenames to remove them from context.
+* Batch processing of commits + Greptile querying in such a way to prevent issue of too much context.
+* Build up a more structured LLM response format with JSON or
+  another format to give us more flexibility/control with the output.
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for more information.
+Made by: Ariel Frischer
 
----
-
-Made with ♥ by Clare Chang

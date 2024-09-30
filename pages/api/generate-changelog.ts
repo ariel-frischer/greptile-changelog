@@ -16,7 +16,11 @@ type Data = {
   changelog: string
 }
 
-async function batchQueryGreptile(greptileAPI: GreptileAPI, commitsWithDiffs: CommitWithDiff[], repositories: any[]) {
+async function batchQueryGreptile(
+  greptileAPI: GreptileAPI,
+  commitsWithDiffs: CommitWithDiff[],
+  repositories: any[]
+) {
   const systemMessage = {
     role: 'system',
     content:
@@ -41,11 +45,15 @@ async function batchQueryGreptile(greptileAPI: GreptileAPI, commitsWithDiffs: Co
   return changelogEntries.join('\n\n')
 }
 
-async function queryGreptile(greptileAPI: GreptileAPI, commitsWithDiffs: CommitWithDiff[], repositories: any[]) {
+async function queryGreptile(
+  greptileAPI: GreptileAPI,
+  commitsWithDiffs: CommitWithDiff[],
+  repositories: any[]
+) {
   const systemMessage = {
     role: 'system',
     content:
-      'You are a helpful assistant that generates changelogs. Focus on non-technical changes and use the correct markdown changelog format with datetimes. Keep responses brief through summarization and discarding insignificant details.',
+      'You are a helpful assistant that generates changelogs. Focus on non-technical changes and use the correct markdown changelog format with datetimes. Keep responses brief through summarization and discarding insignificant details. Only respond with the markdown file starting with Changelog heading.',
   }
 
   const messages = [
@@ -119,18 +127,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       )
       // Get first 3 commits with diffs
       // commitsWithDiffs = commitsWithDiffs.slice(0, 3)
+      console.log('commitsWithDiffs=', commitsWithDiffs)
 
       const greptileAPI = new GreptileAPI(greptileApiKey, githubToken)
       const repositories = [
         {
           remote: 'github',
           repository: gitRepo,
-          branch: 'dev',
+          branch: 'main',
         },
       ]
 
       // Use queryGreptile by default
       const fullChangelog = await queryGreptile(greptileAPI, commitsWithDiffs, repositories)
+      console.warn(': generate-changelog.ts:141: fullChangelog=', fullChangelog)
       // Uncomment the line below to use batchQueryGreptile instead
       // const fullChangelog = await batchQueryGreptile(greptileAPI, commitsWithDiffs, repositories)
 
