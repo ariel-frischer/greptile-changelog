@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { MDXEditor, headingsPlugin } from '@mdxeditor/editor';
+import '@mdxeditor/editor/style.css';
 import { NextPage } from 'next';
-import { marked } from 'marked';
+import { useEffect, useState } from 'react';
 
 const ChangelogPage: NextPage = () => {
   const [startDate, setStartDate] = useState('');
@@ -11,7 +12,7 @@ const ChangelogPage: NextPage = () => {
     if (process.env.NODE_ENV === 'development') {
       setGitRepo('ariel-frischer/bulk-ticket-generator');
       setStartDate('2024-09-22T18:00');
-      setEndDate('2024-09-22T23:10');
+      setEndDate('2024-09-22T18:06');
     }
   }, []);
 
@@ -94,7 +95,9 @@ const ChangelogPage: NextPage = () => {
         <div className="mt-8">
           <h2 className="text-xl font-bold mb-2">Changelog:</h2>
           <div className="prose max-w-none">
-            <div dangerouslySetInnerHTML={{ __html: marked(changelog) }} />
+            <MDXEditor markdown={changelog} plugins={[headingsPlugin()]} />;
+            j
+            {/*<div dangerouslySetInnerHTML={{ __html: marked.parse(changelog) }} />*/}
           </div>
         </div>
       )}
