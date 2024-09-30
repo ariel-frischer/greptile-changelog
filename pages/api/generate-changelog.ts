@@ -2,18 +2,18 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import GreptileAPI from '../../utils/GreptileAPI'
 
 type Commit = {
-  sha: string;
+  sha: string
   commit: {
-    message: string;
-  };
+    message: string
+  }
 }
 
 type CommitWithDiff = Commit & {
-  diff: string;
+  diff: string
 }
 
 type Data = {
-  changelog: string;
+  changelog: string
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
@@ -74,23 +74,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         })
       )
 
-      // Call Greptile API
       const greptileAPI = new GreptileAPI(greptileApiKey, githubToken)
-      const repositories = [{
-        remote: 'github.com',
-        repository: gitRepo,
-        branch: 'main'  // Assuming main branch, adjust if needed
-      }]
+      const repositories = [
+        {
+          remote: 'github',
+          repository: gitRepo,
+          branch: 'dev',
+        },
+      ]
 
       const messages = [
         {
           role: 'system',
-          content: 'You are a helpful assistant that generates changelogs. Focus on non-technical changes and use the correct markdown changelog format with datetimes.'
+          content:
+            'You are a helpful assistant that generates changelogs. Focus on non-technical changes and use the correct markdown changelog format with datetimes.',
         },
         {
           role: 'user',
-          content: `Generate a changelog for the following commits:\n\n${JSON.stringify(commitsWithDiffs, null, 2)}`
-        }
+          content: `Generate a changelog for the following commits:\n\n${JSON.stringify(commitsWithDiffs, null, 2)}`,
+        },
       ]
 
       const greptileResponse = await greptileAPI.query(messages, repositories)
