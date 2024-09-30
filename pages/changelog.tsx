@@ -8,7 +8,7 @@ const ChangelogPage: NextPage = () => {
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      setGitRepo('https://github.com/ariel-frischer/bulk-ticket-generator');
+      setGitRepo('octocat/Hello-World');
       setStartDate('2023-09-22T18:00');
       setEndDate('2023-09-22T23:10');
     }
@@ -25,7 +25,11 @@ const ChangelogPage: NextPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ startDate, endDate, gitRepo }),
+        body: JSON.stringify({ 
+          startDate: new Date(startDate).toISOString(), 
+          endDate: new Date(endDate).toISOString(), 
+          gitRepo 
+        }),
       });
 
       if (response.ok) {
@@ -46,14 +50,14 @@ const ChangelogPage: NextPage = () => {
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Generate Changelog</h1>
       <div>
-        <label htmlFor="gitRepo" className="block mb-1">Git Repository:</label>
+        <label htmlFor="gitRepo" className="block mb-1">Git Repository (owner/repo):</label>
         <input
           type="text"
           id="gitRepo"
           value={gitRepo}
           onChange={(e) => setGitRepo(e.target.value)}
           className="w-full p-2 border rounded"
-          placeholder="https://github.com/username/repo"
+          placeholder="octocat/Hello-World"
         />
       </div>
       <div className="space-y-4 mt-4">
