@@ -1,5 +1,3 @@
-import { MDXEditor, headingsPlugin } from '@mdxeditor/editor';
-import '@mdxeditor/editor/style.css';
 import { NextPage } from 'next';
 import { useEffect, useState } from 'react';
 
@@ -94,11 +92,12 @@ const ChangelogPage: NextPage = () => {
       {changelog && (
         <div className="mt-8">
           <h2 className="text-xl font-bold mb-2">Changelog:</h2>
-          <div className="prose max-w-none">
-            <MDXEditor markdown={changelog} plugins={[headingsPlugin()]} />;
-            j
-            {/*<div dangerouslySetInnerHTML={{ __html: marked.parse(changelog) }} />*/}
-          </div>
+          <textarea
+            value={changelog}
+            onChange={(e) => setChangelog(e.target.value)}
+            className="w-full h-64 p-2 border rounded"
+            readOnly
+          />
         </div>
       )}
     </div>
